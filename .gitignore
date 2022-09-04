@@ -90,3 +90,4 @@ ENV/
 
 #Pycharm IDE
 .idea/
+/src/_cache/*.pdf
