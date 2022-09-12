@@ -1,11 +1,11 @@
-import json, requests
+import requests
 from requests.auth import HTTPBasicAuth
 from process import Process
 from os import environ
 
 class Server:
     __credentials = {}
-    def __init__(self, series, cache_path, keep_cache_days):
+    def __init__(self, series, cache_path, keep_cache_days, myLanguage):
         #self.__headers = {"Content-Type": "application/json"} # for other operations
         self.__base_url = "https://ws.smartbill.ro/SBORO/api"
 
@@ -14,7 +14,7 @@ class Server:
         self.__credentials["PASS"] = environ.get("TOKEN")
 
         self.series = series
-        self.__process = Process(cache_path, keep_cache_days)
+        self.__process = Process(cache_path, keep_cache_days, myLanguage)
         self.__session = requests.Session()
         self.__session.auth = HTTPBasicAuth(self.__credentials["MAIL"], self.__credentials["PASS"])
         #self.__session.headers.update(self.__headers)
@@ -23,8 +23,15 @@ class Server:
         headers = {"Accept": "application/octet-stream"}  # for view invoice
         url = "{base}/invoice/pdf?cif={cif}&seriesname={seriesname}&number={number}".format(base=self.__base_url, cif=self.__credentials["CUI"], seriesname=self.series, number=invoice_id)
 
-        response = self.__session.get(url, headers=headers, timeout=10)
-        return self.__process.get_pdf_to_json(name=self.series + str(invoice_id), pdf_binary=response.content) # pdf binary
+        filename = "{}{}.pdf".format(self.series, invoice_id)
+        if self.__process.get_database().is_filename(filename) == False:
+            response = self.__session.get(url, headers=headers, timeout=10)
+            self.__process.get_database().save_to_pdf(filename, response.content) # save pdf to disk
+            return self.__process.get_pdf_to_json(name=filename, pdf_binary=response.content) # pdf binary
+
+        else: # if file already downloaded
+            return self.__process.get_pdf_to_json(name=filename) # pdf binary
+
 
     def __del__(self):
         self.__session.close()

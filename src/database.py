@@ -2,10 +2,17 @@ import os
 from datetime import datetime
 
 class Database:
-    def __init__(self, cache_path="_cache", keep_cache_days=30):
+    def __init__(self, cache_path="_cache", keep_cache_days=30, myLanguage=[]):
         self.__path_input = cache_path
         self.__keep_cache_days = keep_cache_days
+        self.__myLanguage = myLanguage #object
         self.delete_cache()
+
+    def get_database_filepath(self):
+        return self.__path_input
+
+    def get_myLanguage(self):
+        return self.__myLanguage
 
     def save_to_pdf(self, name, obj_binary):
         if self.__keep_cache_days != 0: # if cache_days is zero, don't save them
@@ -19,9 +26,11 @@ class Database:
         pass
 
     def is_filename(self, filename):
-        pass
-    #TODO - daca fisiserul exista - true, altfel false
-    #TODO - si-l fac sa fie accesibil din server, inainte de request
+        files = os.listdir((self.__path_input))
+        if filename in files:
+            return True
+        else:
+            return False
 
     def delete_cache(self):
         if self.__keep_cache_days == -1:
@@ -35,3 +44,7 @@ class Database:
                 if delta > self.__keep_cache_days:
                     os.remove("{path}/{file}".format(path=self.__path_input, file=file))
                     print("Eliberating cache...")
+
+class Language():
+    def __init__(self, the_invoice):
+        self.the_invoice = the_invoice.upper() # translation for invoice
