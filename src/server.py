@@ -14,7 +14,7 @@ class Server:
         self.__credentials["PASS"] = environ.get("TOKEN")
 
         self.series = series
-        self.__process = Process(cache_path, keep_cache_days, myLanguage)
+        self.__process = Process(cache_path, keep_cache_days, myLanguage, series)
         self.__session = requests.Session()
         self.__session.auth = HTTPBasicAuth(self.__credentials["MAIL"], self.__credentials["PASS"])
         #self.__session.headers.update(self.__headers)
@@ -27,10 +27,10 @@ class Server:
         if self.__process.get_database().is_filename(filename) == False:
             response = self.__session.get(url, headers=headers, timeout=10)
             self.__process.get_database().save_to_pdf(filename, response.content) # save pdf to disk
-            return self.__process.get_pdf_to_json(name=filename, pdf_binary=response.content) # pdf binary
+            return self.__process.get_pdf_to_json(name=filename, id=invoice_id, pdf_binary=response.content) # pdf binary
 
         else: # if file already downloaded
-            return self.__process.get_pdf_to_json(name=filename) # pdf binary
+            return self.__process.get_pdf_to_json(name=filename, id=invoice_id)
 
 
     def __del__(self):

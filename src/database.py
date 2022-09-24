@@ -2,10 +2,10 @@ import os
 from datetime import datetime
 
 class Database:
-    def __init__(self, cache_path="_cache", keep_cache_days=30, myLanguage=[]):
+    def __init__(self, cache_path="_cache", keep_cache_days=30, myLanguage=None):
         self.__path_input = cache_path
         self.__keep_cache_days = keep_cache_days
-        self.__myLanguage = myLanguage #object
+        self.__myLanguage = myLanguage if myLanguage is not None else Language() #object with Language RO as default
         self.delete_cache()
 
     def get_database_filepath(self):
@@ -46,5 +46,7 @@ class Database:
                     print("Eliberating cache...")
 
 class Language():
-    def __init__(self, the_invoice):
+    def __init__(self, the_invoice="FACTURA", address="Adresa", cif="cif"):
         self.the_invoice = the_invoice.upper() # translation for invoice
+        self.address = address
+        self.cif = cif.upper()
