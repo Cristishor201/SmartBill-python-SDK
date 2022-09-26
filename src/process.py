@@ -76,10 +76,42 @@ class Process:
         self.iter_re_invoice = iter(self.__re_invoice.keys())
         re_item = next(self.iter_re_invoice)
         duplex = {} ; is_next_address = False
+        myTables = []
 
         with pdfplumber.open(path + "/" + name) as pdf:
             pages = pdf.pages
             for page in pages:
+                # TODO - extras de fiecare data tabelul pt a extrage din el lista cumparaturi
+                table2 = page.find_tables(table_settings={
+                    "edge_min_length": 3,
+                })[0].extract()
+                print(table2)
+                print(page.find_tables(table_settings={
+                    "horizontal_strategy": "text",
+                    "snap_y_tolerance": 5,
+                    "keep_blank_chars": True,
+                })[0]) #TODO - IMPOSIBIL sa separ liniile invizibile la lista cumparaturi -------------------!!
+
+
+                #TODO - facut sa extraga aceste date doar 1 singura data in prima pagina (nu si in a doua)
+                """
+                myTable = list(table2[0].bbox)
+                first_column_ext = 10 ; x1 = myTable[2]
+                myTable[-1] = myTable[1] ; myTable[1] = 0 ; myTable[2] = myTable[2] / 3 + first_column_ext # first column
+                myTables.append(myTable)
+
+                myTable[0] = myTable[2] + first_column_ext ; myTable[2] = (myTable[2] - first_column_ext)*2 # second_column
+                myTables.append(myTable)
+
+                myTable[0] = myTable[2] + first_column_ext ; myTable[2] = x1 # third column
+                myTables.append(myTable)
+                print(myTable)
+                text = page.crop(bbox=myTable).extract_text()
+                print(text)
+                """
+
+
+                """
                 text = page.extract_text()
                 for line in text.split("\n"):
                     print("----------")
@@ -148,7 +180,7 @@ class Process:
 
 
                         #TODO - sa nu uit sa adaug a doua bucata pt ambele adrese
-
+                """
 
             final["seller"] = seller
             final["buyer"] = buyer
