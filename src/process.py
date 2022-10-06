@@ -85,12 +85,50 @@ class Process:
                 table2 = page.find_tables(table_settings={
                     "edge_min_length": 3,
                 })[0].extract()
-                print(table2)
-                print(page.find_tables(table_settings={
-                    "horizontal_strategy": "text",
-                    "snap_y_tolerance": 5,
-                    "keep_blank_chars": True,
-                })[0]) #TODO - IMPOSIBIL sa separ liniile invizibile la lista cumparaturi -------------------!!
+                #print(table2)
+                tables = page.find_tables(table_settings={"horizontal_strategy": "text", "vertical_strategy": "lines"})
+                table = max(tables, key=lambda x: len(x.cells)) # bigest table
+                h_lines = []
+
+                for cell in table.cells: # extract the boundaries of horizontal extremes lines
+                    h_lines.append(cell[1])
+                # add the last line
+                h_lines.append(table.cells[-1][3])
+
+                lines = []
+                duplicates = []
+
+                for l1, l2 in zip(h_lines[::], h_lines[1::]): # make a list of (delta, occurence)
+                    delta = abs(l1-l2)
+                    if 9 <= delta <= 11:
+                        found = False
+                        for i in range(len(duplicates)):
+                            if delta == duplicates[i][0]:
+                                found = True ; break
+                        if found:
+                            duplicates[i][1] += 1
+                        else:
+                            duplicates.append([delta, 1])
+
+                duplicates.sort(key=lambda item: (item[1], item[0]), reverse=True) # sort (delta, occurence) by 1 - occurence, 2 - delta
+                freq = list(dict.fromkeys([item[1] for item in duplicates])) # a list with removed duplicate
+                k = 2 # I want the second greater value
+                searchedFreq = freq[k-1]
+                for i in range(len(duplicates)):
+                    if duplicates[i][1] == searchedFreq:
+                        my_threshold = duplicates[i][0] ; break
+
+                print("medie:", my_threshold) # TODO - 9.9 (primele 2) / 10.7 (3) | al doilea cel mai frecvent - cel mai mare numar
+
+                for l1, l2 in zip(h_lines[::], h_lines[1::]):
+                    if abs(l1 - l2) >= my_threshold:
+                        lines.append(l2)
+
+                print(page.extract_table(table_settings={"horizontal_strategy": "lines", "explicit_horizontal_lines": lines, "vertical_strategy": "lines"}))
+
+                #print(h_lines)
+                #print(table.extract())
+                #TODO - IMPOSIBIL sa separ liniile invizibile la lista cumparaturi -------------------!!
 
 
                 #TODO - facut sa extraga aceste date doar 1 singura data in prima pagina (nu si in a doua)
